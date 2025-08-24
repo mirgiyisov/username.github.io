@@ -1,0 +1,713 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>💰 Трекер Подписок</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+            color: #333;
+        }
+
+        .container {
+            max-width: 900px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.1);
+            overflow: hidden;
+        }
+
+        .header {
+            background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+            color: white;
+            padding: 30px;
+            text-align: center;
+        }
+
+        .header h1 {
+            font-size: 2.5em;
+            margin-bottom: 10px;
+            font-weight: 300;
+        }
+
+        .currency-selector {
+            margin-top: 15px;
+            display: flex;
+            justify-content: center;
+            gap: 10px;
+            flex-wrap: wrap;
+        }
+
+        .currency-btn {
+            padding: 8px 16px;
+            border: 2px solid rgba(255,255,255,0.3);
+            border-radius: 25px;
+            background: rgba(255,255,255,0.2);
+            color: white;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-weight: 600;
+        }
+
+        .currency-btn.active {
+            background: white;
+            color: #4facfe;
+            border-color: white;
+        }
+
+        .main {
+            padding: 30px;
+        }
+
+        .form-group {
+            display: grid;
+            grid-template-columns: 1fr 1fr 1fr auto;
+            gap: 15px;
+            margin-bottom: 30px;
+            align-items: end;
+        }
+
+        @media (max-width: 768px) {
+            .form-group {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        .input-group {
+            display: flex;
+            flex-direction: column;
+        }
+
+        label {
+            font-weight: 600;
+            margin-bottom: 8px;
+            color: #555;
+            font-size: 0.9em;
+        }
+
+        input, select {
+            padding: 15px;
+            border: 2px solid #e1e5e9;
+            border-radius: 12px;
+            font-size: 16px;
+            transition: all 0.3s ease;
+            background: #f8f9fa;
+        }
+
+        input:focus, select:focus {
+            outline: none;
+            border-color: #4facfe;
+            background: white;
+            box-shadow: 0 0 0 3px rgba(79, 172, 254, 0.1);
+        }
+
+        .btn {
+            padding: 15px 25px;
+            background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+            color: white;
+            border: none;
+            border-radius: 12px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 20px rgba(79, 172, 254, 0.3);
+        }
+
+        .btn-edit {
+            background: linear-gradient(135deg, #ffd166 0%, #ffb74d 100%);
+        }
+
+        .btn-delete {
+            background: linear-gradient(135deg, #ff6b6b 0%, #ee5a52 100%);
+        }
+
+        .btn-save {
+            background: linear-gradient(135deg, #06d6a0 0%, #04a777 100%);
+        }
+
+        .subscriptions-list {
+            display: grid;
+            gap: 20px;
+        }
+
+        .subscription-card {
+            background: white;
+            border-radius: 16px;
+            padding: 25px;
+            border: 2px solid #f1f3f4;
+            transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .subscription-card.editing {
+            border-color: #ffd166;
+            background: linear-gradient(135deg, #fff9e6 0%, #fff3cd 100%);
+        }
+
+        .subscription-card.warning {
+            border-color: #ffc107;
+            background: linear-gradient(135deg, #fff9e6 0%, #fff3cd 100%);
+        }
+
+        .subscription-card.danger {
+            border-color: #dc3545;
+            background: linear-gradient(135deg, #ffe6e6 0%, #ffcdd2 100%);
+        }
+
+        .subscription-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 15px;
+        }
+
+        .subscription-name {
+            font-size: 1.4em;
+            font-weight: 600;
+            color: #2c3e50;
+        }
+
+        .subscription-price {
+            font-size: 1.2em;
+            font-weight: 700;
+            color: #4facfe;
+        }
+
+        .subscription-details {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+            margin-bottom: 20px;
+        }
+
+        .detail-item {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .detail-label {
+            font-size: 0.9em;
+            color: #6c757d;
+            margin-bottom: 5px;
+        }
+
+        .detail-value {
+            font-weight: 600;
+            color: #495057;
+        }
+
+        .edit-input {
+            padding: 8px 12px;
+            border: 2px solid #4facfe;
+            border-radius: 8px;
+            font-size: 14px;
+            width: 100%;
+        }
+
+        .days-left {
+            font-size: 1.1em;
+            font-weight: 700;
+            padding: 8px 16px;
+            border-radius: 20px;
+            display: inline-block;
+            margin-top: 10px;
+        }
+
+        .days-left.normal {
+            background: #d4edda;
+            color: #155724;
+        }
+
+        .days-left.warning {
+            background: #fff3cd;
+            color: #856404;
+        }
+
+        .days-left.danger {
+            background: #f8d7da;
+            color: #721c24;
+        }
+
+        .subscription-actions {
+            display: flex;
+            gap: 10px;
+            justify-content: flex-end;
+            margin-top: 15px;
+        }
+
+        .empty-state {
+            text-align: center;
+            padding: 60px 20px;
+            color: #6c757d;
+        }
+
+        .empty-state i {
+            font-size: 4em;
+            margin-bottom: 20px;
+            color: #dee2e6;
+        }
+
+        .empty-state h3 {
+            font-size: 1.5em;
+            margin-bottom: 10px;
+            color: #6c757d;
+        }
+
+        .total-cost {
+            background: #f8f9fa;
+            padding: 20px;
+            border-radius: 12px;
+            margin-top: 30px;
+            text-align: center;
+        }
+
+        .total-cost h3 {
+            color: #495057;
+            margin-bottom: 10px;
+        }
+
+        .total-amount {
+            font-size: 2em;
+            font-weight: 700;
+            color: #4facfe;
+        }
+
+        .notification-badge {
+            position: absolute;
+            top: 15px;
+            right: 15px;
+            background: #dc3545;
+            color: white;
+            border-radius: 50%;
+            width: 25px;
+            height: 25px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 0.8em;
+            font-weight: 600;
+        }
+
+        .currency-flag {
+            font-size: 1.2em;
+            margin-right: 5px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1><i class="fas fa-wallet"></i> Трекер Подписок</h1>
+            <p>Управляйте подписками в любой валюте</p>
+            
+            <div class="currency-selector">
+                <button class="currency-btn active" onclick="changeCurrency('₽')">
+                    <span class="currency-flag">₽</span> RUB
+                </button>
+                <button class="currency-btn" onclick="changeCurrency('$')">
+                    <span class="currency-flag">$</span> USD
+                </button>
+                <button class="currency-btn" onclick="changeCurrency('€')">
+                    <span class="currency-flag">€</span> EUR
+                </button>
+                <button class="currency-btn" onclick="changeCurrency('₸')">
+                    <span class="currency-flag">₸</span> KZT
+                </button>
+                <button class="currency-btn" onclick="changeCurrency('сум')">
+                    <span class="currency-flag">UZS</span> UZS
+                </button>
+            </div>
+        </div>
+
+        <div class="main">
+            <div class="form-group">
+                <div class="input-group">
+                    <label for="subName"><i class="fas fa-tag"></i> Название подписки</label>
+                    <input type="text" id="subName" placeholder="Netflix, Spotify...">
+                </div>
+
+                <div class="input-group">
+                    <label for="subPrice"><i class="fas fa-money-bill"></i> Стоимость</label>
+                    <input type="number" id="subPrice" placeholder="0.00" step="0.01" min="0">
+                </div>
+
+                <div class="input-group">
+                    <label for="subDate"><i class="fas fa-calendar-alt"></i> Дата подключения</label>
+                    <input type="date" id="subDate">
+                </div>
+
+                <div class="input-group">
+                    <label for="subCycle"><i class="fas fa-sync-alt"></i> Период</label>
+                    <select id="subCycle">
+                        <option value="1">Ежемесячно</option>
+                        <option value="3">Ежеквартально</option>
+                        <option value="12">Ежегодно</option>
+                    </select>
+                </div>
+
+                <button class="btn" onclick="addSubscription()">
+                    <i class="fas fa-plus"></i> Добавить
+                </button>
+            </div>
+
+            <div id="subscriptionsList" class="subscriptions-list">
+                <div class="empty-state">
+                    <i class="fas fa-inbox"></i>
+                    <h3>Нет активных подписок</h3>
+                    <p>Добавьте первую подписку чтобы начать отслеживание</p>
+                </div>
+            </div>
+
+            <div class="total-cost">
+                <h3><i class="fas fa-chart-pie"></i> Общие расходы в месяц</h3>
+                <div class="total-amount" id="totalAmount">0 <span id="currencySymbol">₽</span></div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let subscriptions = JSON.parse(localStorage.getItem('subscriptions')) || [];
+        let currentCurrency = localStorage.getItem('currency') || '₽';
+        let editingId = null;
+        const today = new Date();
+
+        // Установка сегодняшней даты по умолчанию
+        document.getElementById('subDate').valueAsDate = today;
+
+        // Активируем выбранную валюту
+        document.querySelectorAll('.currency-btn').forEach(btn => {
+            if (btn.textContent.includes(currentCurrency)) {
+                btn.classList.add('active');
+            } else {
+                btn.classList.remove('active');
+            }
+        });
+        document.getElementById('currencySymbol').textContent = currentCurrency;
+
+        function changeCurrency(currency) {
+            currentCurrency = currency;
+            localStorage.setItem('currency', currency);
+            
+            // Обновляем кнопки
+            document.querySelectorAll('.currency-btn').forEach(btn => {
+                btn.classList.remove('active');
+                if (btn.textContent.includes(currency)) {
+                    btn.classList.add('active');
+                }
+            });
+            
+            document.getElementById('currencySymbol').textContent = currency;
+            renderSubscriptions();
+        }
+
+        function renderSubscriptions() {
+            const container = document.getElementById('subscriptionsList');
+            const totalAmount = document.getElementById('totalAmount');
+            
+            if (subscriptions.length === 0) {
+                container.innerHTML = `
+                    <div class="empty-state">
+                        <i class="fas fa-inbox"></i>
+                        <h3>Нет активных подписок</h3>
+                        <p>Добавьте первую подписку чтобы начать отслеживание</p>
+                    </div>
+                `;
+                totalAmount.innerHTML = `0 <span id="currencySymbol">${currentCurrency}</span>`;
+                return;
+            }
+
+            let totalMonthly = 0;
+            container.innerHTML = subscriptions.map(sub => {
+                const startDate = new Date(sub.startDate);
+                const cycleMonths = parseInt(sub.cycle);
+                const nextPayment = new Date(startDate);
+                nextPayment.setMonth(nextPayment.getMonth() + cycleMonths);
+                
+                const daysUntil = Math.ceil((nextPayment - today) / (1000 * 60 * 60 * 24));
+                
+                let statusClass = 'normal';
+                let daysClass = 'normal';
+                if (daysUntil <= 3) {
+                    statusClass = 'danger';
+                    daysClass = 'danger';
+                } else if (daysUntil <= 7) {
+                    statusClass = 'warning';
+                    daysClass = 'warning';
+                }
+
+                const monthlyCost = cycleMonths === 1 ? sub.price : 
+                                  cycleMonths === 3 ? sub.price / 3 : 
+                                  sub.price / 12;
+                totalMonthly += monthlyCost;
+
+                const isEditing = editingId === sub.id;
+
+                return `
+                    <div class="subscription-card ${statusClass} ${isEditing ? 'editing' : ''}">
+                        ${daysUntil <= 3 ? '<div class="notification-badge"><i class="fas fa-bell"></i></div>' : ''}
+                        
+                        <div class="subscription-header">
+                            ${isEditing ? `
+                                <input type="text" class="edit-input" value="${sub.name}" id="edit-name-${sub.id}">
+                            ` : `
+                                <div class="subscription-name">${sub.name}</div>
+                            `}
+                            ${isEditing ? `
+                                <input type="number" class="edit-input" value="${sub.price}" step="0.01" id="edit-price-${sub.id}" style="width: 100px;">
+                            ` : `
+                                <div class="subscription-price">${sub.price} ${sub.currency || currentCurrency}</div>
+                            `}
+                        </div>
+
+                        <div class="subscription-details">
+                            <div class="detail-item">
+                                <span class="detail-label"><i class="fas fa-calendar-plus"></i> Подключена</span>
+                                ${isEditing ? `
+                                    <input type="date" class="edit-input" value="${sub.startDate}" id="edit-date-${sub.id}">
+                                ` : `
+                                    <span class="detail-value">${new Date(sub.startDate).toLocaleDateString('ru-RU')}</span>
+                                `}
+                            </div>
+                            <div class="detail-item">
+                                <span class="detail-label"><i class="fas fa-calendar-check"></i> Следующее списание</span>
+                                <span class="detail-value">${nextPayment.toLocaleDateString('ru-RU')}</span>
+                            </div>
+                            <div class="detail-item">
+                                <span class="detail-label"><i class="fas fa-sync-alt"></i> Период</span>
+                                ${isEditing ? `
+                                    <select class="edit-input" id="edit-cycle-${sub.id}">
+                                        <option value="1" ${sub.cycle == 1 ? 'selected' : ''}>Ежемесячно</option>
+                                        <option value="3" ${sub.cycle == 3 ? 'selected' : ''}>Ежеквартально</option>
+                                        <option value="12" ${sub.cycle == 12 ? 'selected' : ''}>Ежегодно</option>
+                                    </select>
+                                ` : `
+                                    <span class="detail-value">${cycleMonths === 1 ? 'Ежемесячно' : cycleMonths === 3 ? 'Ежеквартально' : 'Ежегодно'}</span>
+                                `}
+                            </div>
+                            <div class="detail-item">
+                                <span class="detail-label"><i class="fas fa-calendar-day"></i> Осталось дней</span>
+                                <span class="days-left ${daysClass}">${daysUntil}</span>
+                            </div>
+                        </div>
+
+                        <div class="subscription-actions">
+                            ${isEditing ? `
+                                <button class="btn btn-save" onclick="saveEdit(${sub.id})">
+                                    <i class="fas fa-save"></i> Сохранить
+                                </button>
+                                <button class="btn btn-delete" onclick="cancelEdit()">
+                                    <i class="fas fa-times"></i> Отмена
+                                </button>
+                            ` : `
+                                <button class="btn btn-edit" onclick="startEdit(${sub.id})">
+                                    <i class="fas fa-edit"></i> Изменить
+                                </button>
+                                <button class="btn btn-delete" onclick="deleteSubscription(${sub.id})">
+                                    <i class="fas fa-trash"></i> Удалить
+                                </button>
+                            `}
+                        </div>
+                    </div>
+                `;
+            }).join('');
+
+            totalAmount.innerHTML = `${totalMonthly.toFixed(2)} <span id="currencySymbol">${currentCurrency}</span>`;
+        }
+
+        function addSubscription() {
+            const name = document.getElementById('subName').value.trim();
+            const price = parseFloat(document.getElementById('subPrice').value);
+            const startDate = document.getElementById('subDate').value;
+            const cycle = document.getElementById('subCycle').value;
+
+            if (!name || isNaN(price) || price <= 0 || !startDate) {
+                showNotification('Пожалуйста, заполните все поля корректно!', 'error');
+                return;
+            }
+
+            const newSub = {
+                id: Date.now(),
+                name: name,
+                price: price,
+                currency: currentCurrency,
+                startDate: startDate,
+                cycle: cycle
+            };
+
+            subscriptions.push(newSub);
+            saveSubscriptions();
+            
+            // Сброс формы
+            document.getElementById('subName').value = '';
+            document.getElementById('subPrice').value = '';
+            document.getElementById('subDate').valueAsDate = today;
+            
+            renderSubscriptions();
+            showNotification(`✅ Подписка "${name}" добавлена!`);
+        }
+
+        function startEdit(id) {
+            editingId = id;
+            renderSubscriptions();
+        }
+
+        function cancelEdit() {
+            editingId = null;
+            renderSubscriptions();
+        }
+
+        function saveEdit(id) {
+            const subIndex = subscriptions.findIndex(s => s.id === id);
+            if (subIndex === -1) return;
+
+            const newName = document.getElementById(`edit-name-${id}`).value.trim();
+            const newPrice = parseFloat(document.getElementById(`edit-price-${id}`).value);
+            const newDate = document.getElementById(`edit-date-${id}`).value;
+            const newCycle = document.getElementById(`edit-cycle-${id}`).value;
+
+            if (!newName || isNaN(newPrice) || newPrice <= 0 || !newDate) {
+                showNotification('Пожалуйста, заполните все поля корректно!', 'error');
+                return;
+            }
+
+            subscriptions[subIndex] = {
+                ...subscriptions[subIndex],
+                name: newName,
+                price: newPrice,
+                currency: currentCurrency,
+                startDate: newDate,
+                cycle: newCycle
+            };
+
+            saveSubscriptions();
+            editingId = null;
+            renderSubscriptions();
+            showNotification('✅ Изменения сохранены!');
+        }
+
+        function deleteSubscription(id) {
+            if (confirm('Удалить эту подписку?')) {
+                const sub = subscriptions.find(s => s.id === id);
+                subscriptions = subscriptions.filter(s => s.id !== id);
+                saveSubscriptions();
+                renderSubscriptions();
+                showNotification(`🗑️ Подписка "${sub.name}" удалена!`);
+            }
+        }
+
+        function saveSubscriptions() {
+            localStorage.setItem('subscriptions', JSON.stringify(subscriptions));
+        }
+
+        function showNotification(message, type = 'success') {
+            const notification = document.createElement('div');
+            notification.style.cssText = `
+                position: fixed;
+                top: 20px;
+                right: 20px;
+                background: ${type === 'success' ? '#4facfe' : '#dc3545'};
+                color: white;
+                padding: 15px 25px;
+                border-radius: 10px;
+                box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+                z-index: 1000;
+                animation: slideIn 0.3s ease;
+            `;
+            notification.textContent = message;
+            document.body.appendChild(notification);
+
+            setTimeout(() => {
+                notification.style.animation = 'slideOut 0.3s ease';
+                setTimeout(() => notification.remove(), 300);
+            }, 3000);
+        }
+
+        function checkReminders() {
+            subscriptions.forEach(sub => {
+                const startDate = new Date(sub.startDate);
+                const cycleMonths = parseInt(sub.cycle);
+                const nextPayment = new Date(startDate);
+                nextPayment.setMonth(nextPayment.getMonth() + cycleMonths);
+                
+                const daysUntil = Math.ceil((nextPayment - today) / (1000 * 60 * 60 * 24));
+                
+                if (daysUntil === 1) {
+                    showNotification(`🔔 Завтра списание за ${sub.name} - ${sub.price}${sub.currency || currentCurrency}!`);
+                } else if (daysUntil === 0) {
+                    showNotification(`⚠️ Сегодня списание за ${sub.name} - ${sub.price}${sub.currency || currentCurrency}!`);
+                }
+            });
+        }
+
+        // Запуск приложения
+        renderSubscriptions();
+        checkReminders();
+
+        // Ежедневная проверка напоминаний
+        setInterval(checkReminders, 24 * 60 * 60 * 1000);
+
+        // Добавляем анимации
+        const style = document.createElement('style');
+        style.textContent = `
+            @keyframes slideIn {
+                from {
+                    transform: translateX(100%);
+                    opacity: 0;
+                }
+                to {
+                    transform: translateX(0);
+                    opacity: 1;
+                }
+            }
+            
+            @keyframes slideOut {
+                from {
+                    transform: translateX(0);
+                    opacity: 1;
+                }
+                to {
+                    transform: translateX(100%);
+                    opacity: 0;
+                }
+            }
+            
+            .subscription-card {
+                animation: fadeIn 0.5s ease;
+            }
+            
+            @keyframes fadeIn {
+                from {
+                    opacity: 0;
+                    transform: translateY(20px);
+                }
+                to {
+                    opacity: 1;
+                    transform: translateY(0);
+                }
+            }
+        `;
+        document.head.appendChild(style);
+    </script>
+</body>
+</html>
